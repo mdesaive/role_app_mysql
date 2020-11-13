@@ -1,0 +1,7 @@
+{{ ansible_managed | comment }}
+[mysqld]
+server-id         = {{ role_app_mysql_server_id }}
+relay-log         = /var/lib/mysql/mysql-relay-bin.log
+log_bin           = /var/lib/mysql/mysql-bin.log
+binlog-ignore-db  = mysql
+binlog-ignore-db  = informationschema

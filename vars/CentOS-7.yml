@@ -1,0 +1,3 @@
+role_app_mysql_package: mysql-server
+role_app_mysql_service: mysqld
+

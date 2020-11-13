@@ -1,0 +1,7 @@
+{{ ansible_managed | comment }}
+{% for section, settings in item.value.items() %}
+[{{ section }}]
+{% for key, value in settings.items() %}
+{{ key }} = {{ value }}
+{% endfor %}
+{% endfor %}

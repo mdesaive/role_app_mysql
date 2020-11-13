@@ -1,0 +1,16 @@
+---
+- name: Some early tasks.
+  include: 10_pre.yml
+
+- name: Tasks that do not rely on service running.
+  include: 20_os.yml
+
+- name: Tasks that rely on service running.
+  include: 30_service_required.yml
+
+- name: Setup the cluster.
+  include: 40_setup_cluster.yml
+  when: role_app_mysql_role == 'slave'
+
+- name: Some late tasks.
+  include: 60_post.yml

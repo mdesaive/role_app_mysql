@@ -1,0 +1,3 @@
+UPDATE mysql.user
+    ALTER USER 'root'@'localhost' IDENTIFIED BY '{{ role_app_mysql_tmp_vault_dbroot_pw }}';
+FLUSH PRIVILEGES;

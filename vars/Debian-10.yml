@@ -1,0 +1,9 @@
+role_app_mysql_package: mysql-server
+role_app_mysql_service: mysql
+role_app_mysql_cnf_dir: /etc/mysql/conf.d/
+role_app_mysql_extra_packages:
+  - python-pip
+  - python3-pip
+  # - python3-pymysql
+  # - python-pymysql
+

@@ -1,0 +1,43 @@
+- name: Enable MySQL Service.
+  service:
+    name: "{{ role_app_mysql_service }}"
+    enabled: yes
+
+- name: Start MySQL
+  service:
+    name: "{{ role_app_mysql_service }}"
+    state: started
+
+- name: Flush MySQL handler
+  meta: flush_handlers
+
+- name: Setup socket based authentication for root DB user
+  include: '{{ item }}'
+  with_first_found:
+    - '31_socket_auth_{{ ansible_distribution }}_{{ ansible_distribution_major_version}}_{{ role_app_mysql_repo }}.yml'
+    - '31_socket_auth_{{ role_app_mysql_repo }}.yml'
+    - '31_socket_auth.yml'
+  when: role_app_mysql_tmp_vault_root_auth_type == 'socket'
+
+- name: Setup password authentication for root DB user
+  include: '{{ item }}'
+  with_first_found:
+    - '32_password_auth_{{ ansible_distribution }}_{{ ansible_distribution_major_version}}_{{ role_app_mysql_repo }}.yml'
+    - '32_password_auth_{{ role_app_mysql_repo }}.yml'
+    - '32_password_auth.yml'
+  when:
+    - role_app_mysql_tmp_vault_root_auth_type == 'password'
+
+- name: Create DB users
+  mysql_user:
+    check_implicit_admin: '{{ "yes" if role_app_mysql_vault_auth_type == "auth_socket" | default(false) else omit }}'
+    login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_vault_auth_type == "auth_socket" | default(false) else omit }}'
+    login_user: '{{ role_app_mysql_vault_default_auth_user if role_app_mysql_vault_auth_type == "password" | default(false) else omit }}'
+    login_password: '{{ role_app_mysql_vault_auth_pw if role_app_mysql_vault_auth_type == "password" | default(false) else omit }}'
+    name: '{{ item.name }}'
+    password: '{{ item.pw }}'
+    priv: '{{ item.priv }}'
+    state: present
+  loop: '{{ role_app_mysql_vault_users }}'
+  when: role_app_mysql_vault_users is defined
+  # no_log: true

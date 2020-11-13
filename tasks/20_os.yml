@@ -1,0 +1,56 @@
+- name: Disable MySQL App Stream for CentOS 8.
+  shell: dnf module disable mysql
+  when:
+    - ansible_facts['distribution'] == 'CentOS'
+    - ansible_facts['distribution_major_version'] == '8'
+
+- name: Install mysql package.
+  package:
+    name: '{{ role_app_mysql_package }}'
+    state: present
+  notify: Restart MySQL
+
+- name: Install additional packages
+  package:
+    name: '{{ item }}'
+    state: present
+  loop: '{{ role_app_mysql_extra_packages }}'
+
+- name: Install PyMySQL from PIP
+  pip:
+    name: PyMySQL
+
+- name: Create MySQL configuration files
+  template:
+    dest: '{{ role_app_mysql_cnf_dir }}/{{ item.key }}.cnf'
+    src: templates/mysql_cnf.j2
+  loop:
+    '{{ role_app_mysql_configs | dict2items}}'
+  notify:
+    - Restart MySQL
+  when:
+    - role_app_mysql_configs is defined
+
+- name: Create MySQL Master configuration files
+  template:
+    dest: '{{ role_app_mysql_cnf_dir }}/21-logging.cnf'
+    src: templates/21-logging_cnf.j2
+  when: role_app_mysql_role == "master"
+  notify:
+    - Restart MySQL
+
+- name: Create MySQL Master configuration files
+  template:
+    dest: '{{ role_app_mysql_cnf_dir }}/20-replication-master.cnf'
+    src: templates/20_replication_master_cnf.j2
+  when: role_app_mysql_role == "master"
+  notify:
+    - Restart MySQL
+
+- name: Create MySQL Slave configuration files
+  template:
+    dest: '{{ role_app_mysql_cnf_dir }}/20-replication-slave.cnf'
+    src: templates/20_replication_slave.cnf.j2
+  when: role_app_mysql_role == "slave"
+  notify:
+    - Restart MySQL

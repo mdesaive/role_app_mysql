@@ -1,0 +1,24 @@
+- name: Prepare list of variable names to be deleted
+  set_fact:
+    role_app_mysql_tmp_deletelist: '{{ lookup("varnames", role_name + "_tmp") }}'
+
+- name: Cleanup temporary variables
+  set_fact:
+    '{{ item }}': ''
+  loop: '{{ role_app_mysql_tmp_deletelist.split(",") }}'
+  when: role_app_mysql_tmp_deletelist != []
+
+# - name: Variables after cleanup
+#   debug:
+#     msg: '{{ lookup("vars", item) }}'
+#   # loop: '{{ lookup("varnames", "^" + role_name).split(",") | reject("match", "^" + role_name + ".*vault") | list  }}'
+#   loop: '{{ lookup("varnames", "^" + role_name).split(",") }}'
+#
+# - name: Set root password
+#   include: 80-recover-lost-dbroot-pw.yml
+
+- name: Generate error, when restarting services is suppressed.
+  fail:
+    msg: 'role_app_mysql_service_maintenance is set to "never-stop" there are configuration chances pending.'
+  ignore_errors: yes
+  when: role_app_mysql_service_maintenance == 'never-stop'
