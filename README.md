@@ -7,9 +7,7 @@ This may be a standalone setup or part of a MySQL Master-Slave setup.
 TODO
 ------------
 
-- Provide cloudstack.cnf through variables not hardcoded!!
-- Catch the case, that role_app_mysql_rootpassword is unset.
-
+- For Debian 8 and MySQL 5.5 the root password is not reset correctly. Fix manually
 Requirements
 ------------
 

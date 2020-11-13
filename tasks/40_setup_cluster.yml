@@ -12,22 +12,6 @@
   when:
     - role_app_mysql_master_name != role_app_mysql_tmp_master_short_hostname
 
-- name: debug
-  debug:
-    var: role_app_mysql_master_name
-
-- name: debug
-  debug:
-    var: role_app_mysql_vault_default_auth_user
-
-- name: debug
-  debug:
-    var: role_app_mysql_vault_db_root_pw
-
-- name: debug
-  debug:
-    var: role_app_mysql_tmp_vault_root_auth_type
-
 - name: Create replication users
   mysql_user:
     # check_implicit_admin: '{{ "yes" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
@@ -40,7 +24,7 @@
     priv: '*.*:REPLICATION SLAVE'
     state: present
   delegate_to: '{{ role_app_mysql_master_name }}'
-  # no_log: true
+  no_log: true
 
 - name: Get master binlog position and logfile name
   community.mysql.mysql_replication:
@@ -50,7 +34,7 @@
     mode: getmaster
   delegate_to: '{{ role_app_mysql_master_name }}'
   register: role_mod_mysql_tmp_master_repl_position
-  # no_log: true
+  no_log: true
 
 - name: Fail, if master node not ready as master
   fail:
@@ -67,10 +51,6 @@
   no_log: true
 
 - block:
-    - name: debug
-      debug:
-        var: role_mod_mysql_tmp_master_repl_position
-
     - name: Change master on slaves
       community.mysql.mysql_replication:
         mode: changemaster
@@ -82,7 +62,7 @@
         login_user: '{{ "root" if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
         login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
         login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
-      # no_log: true
+      no_log: true
 
     - name: Start slaves
       community.mysql.mysql_replication:
@@ -91,4 +71,4 @@
         login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
         login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
   when: role_mod_mysql_tmp_slave_status["Is_Slave"] == False
-  # no_log: true
+  no_log: true

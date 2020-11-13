@@ -11,11 +11,11 @@
 - name: Flush MySQL handler
   meta: flush_handlers
 
-- name: Cleanup accounts and plugins
-  include: 31_cleanup_accounts_and_plugins.yml
-
 - name: Reset root password
-  include: 32_reset_root_password.yml
+  include: 31_reset_root_password.yml
+
+- name: Cleanup accounts and plugins
+  include: 32_cleanup_root_accounts.yml
 
 - name: Create DB users
   mysql_user:

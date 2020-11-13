@@ -637,4 +637,4 @@
               gpgcheck: "no"
               enabled: "no"
   when: role_app_mysql_repo == 'community'
-  no_log: True
+  # no_log: True
