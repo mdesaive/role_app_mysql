@@ -16,12 +16,24 @@
   debug:
     var: role_app_mysql_master_name
 
+- name: debug
+  debug:
+    var: role_app_mysql_vault_default_auth_user
+
+- name: debug
+  debug:
+    var: role_app_mysql_vault_db_root_pw
+
+- name: debug
+  debug:
+    var: role_app_mysql_tmp_vault_root_auth_type
+
 - name: Create replication users
   mysql_user:
     # check_implicit_admin: '{{ "yes" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
     login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
     login_user: '{{ role_app_mysql_vault_default_auth_user if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
-    login_password: '{{ role_app_mysql_vault_auth_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
+    login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
     name: '{{ role_app_mysql_vault_slave_repl_user }}'
     host: '{{ role_app_mysql_service_address }}'
     password: '{{ role_app_mysql_vault_slave_repl_pw }}'
@@ -34,7 +46,7 @@
   community.mysql.mysql_replication:
     login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if hostvars[role_app_mysql_master_name]["role_app_mysql_tmp_vault_root_auth_type"] == "socket" | default(false) else omit }}'
     login_user: '{{ role_app_mysql_vault_default_auth_user if hostvars[role_app_mysql_master_name]["role_app_mysql_tmp_vault_root_auth_type"] == "password" | default(false) else omit }}'
-    login_password: '{{ role_app_mysql_vault_auth_pw if hostvars[role_app_mysql_master_name]["role_app_mysql_tmp_vault_root_auth_type"] == "password" | default(false) else omit }}'
+    login_password: '{{ role_app_mysql_vault_db_root_pw if hostvars[role_app_mysql_master_name]["role_app_mysql_tmp_vault_root_auth_type"] == "password" | default(false) else omit }}'
     mode: getmaster
   delegate_to: '{{ role_app_mysql_master_name }}'
   register: role_mod_mysql_tmp_master_repl_position

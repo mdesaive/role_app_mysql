@@ -60,6 +60,21 @@
     - role_app_mysql_vault_root_auth_plugin != 'mysql_native_password'
     - role_app_mysql_vault_root_auth_plugin != 'auth_socket'
 
+- name: Assure Ansible locks directory exists
+  file:
+    name: /etc/ansible_locks
+    state: directory
+
+- name: Gather the package facts
+  package_facts:
+    manager: auto
+
+- name: Set flag to reset root password if mysql is not installed
+  file:
+    path: /etc/ansible_locks/role_app_mysql_reset_root_pw
+    state: touch
+  when: role_app_mysql_package not in ansible_facts.packages
+
 - block:
     - name: Prepare value for Debian repository distribution release
       set_fact:

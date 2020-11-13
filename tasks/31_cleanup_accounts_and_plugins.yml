@@ -1,0 +1,33 @@
+- name: Check if socket auth is available
+  community.mysql.mysql_query:
+    login_db: INFORMATION_SCHEMA
+    login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type  == "socket" | default(false) else omit }}'
+    login_user: '{{ role_app_mysql_vault_default_auth_user }}'
+    login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type  == "password" | default(false) else omit }}'
+    query: 'select * from plugins where plugin_name = "auth_socket";'
+  register: role_app_mysql_tmp_check_auth_socket
+
+- name: Install socket_auth module if not installed.
+  community.mysql.mysql_query:
+    login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type  == "socket" | default(false) else omit }}'
+    login_user: '{{ role_app_mysql_vault_default_auth_user }}'
+    login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type  == "password" | default(false) else omit }}'
+    query: 'INSTALL PLUGIN auth_socket SONAME "auth_socket.so";'
+  when: role_app_mysql_tmp_check_auth_socket["rowcount"][0] == 0
+
+- name: Check if root logins for hosts other than localhost are configured
+  community.mysql.mysql_query:
+    login_db: INFORMATION_SCHEMA
+    login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type  == "socket" | default(false) else omit }}'
+    login_user: '{{ role_app_mysql_vault_default_auth_user }}'
+    login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type  == "password" | default(false) else omit }}'
+    query: 'select * from mysql.user where user = "root" and host <> "localhost";'
+  register: role_app_mysql_tmp_check_root_not_localhost
+
+- name: Clean up root accounts
+  community.mysql.mysql_query:
+    login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
+    login_user: '{{ role_app_mysql_vault_default_auth_user if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
+    login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
+    query: "drop user \"{{ item['User'] }}\"@\"{{ item['Host'] }}\";"
+  loop: '{{ role_app_mysql_tmp_check_root_not_localhost["query_result"][0] }}'

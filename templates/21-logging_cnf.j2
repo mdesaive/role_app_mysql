@@ -2,8 +2,8 @@
 [mysqld]
 log-error = /var/log/mysql-error.log
 {% if role_app_mysql_general_log_enabled == True %}
-log = /var/log/mysql.log
+log = /var/log/mysql/mysql.log
 {% endif %}
 {% if role_app_mysql_slowquery_log_enabled == True %}
-log-slow-queries = /var/log/mysql-slowquery.log
+log-slow-queries = /var/log/mysql/slowquery.log
 {% endif %}
