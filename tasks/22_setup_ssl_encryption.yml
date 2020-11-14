@@ -1,0 +1,31 @@
+- name: Create CA certificate file.
+  copy:
+    src: files/{{ role_app_mysql_ssl_cafile }}
+    dest: /etc/mysql/{{ role_app_mysql_ssl_cafile }}
+    owner: mysql
+    group: mysql
+    mode: '0400'
+
+- name: Create SSL certificate.
+  copy:
+    src: files/{{ role_app_mysql_ssl_cert }}
+    dest: /etc/mysql/{{ role_app_mysql_ssl_cert }}
+    owner: mysql
+    group: mysql
+    mode: '0400'
+
+- name: Create SSL certificate key.
+  copy:
+    src: files/{{ role_app_mysql_ssl_key }}
+    dest: /etc/mysql/{{ role_app_mysql_ssl_key }}
+    owner: mysql
+    group: mysql
+    mode: '0400'
+
+- name: Create SSL configuration files
+  template:
+    dest: '{{ role_app_mysql_cnf_dir }}/22-ssl.cnf'
+    src: templates/22_ssl_cnf.j2
+  when: role_app_mysql_role == "master"
+  notify:
+    - Restart MySQL

@@ -45,6 +45,7 @@
 - name: Read master binlog position from variable
   set_fact:
     role_mod_mysql_tmp_master_repl_position: "{{ role_app_mysql_master_binlogposition }}"
+  when: 'role_app_mysql_master_name not in groups[role_app_mysql_clustername]'
 
 - debug:
     var: role_mod_mysql_tmp_master_repl_position
@@ -74,6 +75,7 @@
         master_log_pos: '{{ role_mod_mysql_tmp_master_repl_position["Position"] }}'
         master_user: '{{ role_app_mysql_vault_slave_repl_user }}'
         master_password: '{{ role_app_mysql_vault_slave_repl_pw }}'
+        master_ssl: 1
         login_user: '{{ "root" if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
         login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
         login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'

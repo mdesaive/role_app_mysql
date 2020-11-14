@@ -1,12 +1,24 @@
+- name: debug
+  debug:
+    var: role_app_mysql_tmp_vault_root_auth_type
+
+- name: debug
+  debug:
+    var: role_app_mysql_vault_default_auth_user
+
+- name: debug
+  debug:
+    var: role_app_mysql_vault_db_root_pw
+
 - name: Check if root logins for hosts other than localhost are configured
   community.mysql.mysql_query:
-    login_db: INFORMATION_SCHEMA
+    # login_db: INFORMATION_SCHEMA
     login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type  == "socket" | default(false) else omit }}'
-    login_user: '{{ role_app_mysql_vault_default_auth_user }}'
+    login_user: '{{ role_app_mysql_vault_default_auth_user if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
     login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type  == "password" | default(false) else omit }}'
     query: 'select * from mysql.user where user = "root" and host <> "localhost";'
   register: role_app_mysql_tmp_check_illegal_root_accounts
-  no_log: true
+  # no_log: true
 
 - name: Clean up root accounts
   community.mysql.mysql_query:

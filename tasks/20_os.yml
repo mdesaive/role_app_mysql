@@ -23,6 +23,15 @@
 - name: Reset root password
   include: 21_reset_root_password.yml
 
+- name: Reset root password
+  include: 22_setup_ssl_encryption.yml
+  when:
+    - 'role_app_mysql_ssl_cafile is defined'
+    - 'role_app_mysql_ssl_cert is defined'
+    - 'role_app_mysql_ssl_key is defined'
+  notify:
+    - Restart MySQL
+
 - name: Create MySQL configuration files
   template:
     dest: '{{ role_app_mysql_cnf_dir }}/{{ item.key }}.cnf'
@@ -34,11 +43,10 @@
   when:
     - role_app_mysql_configs is defined
 
-- name: Create MySQL Master configuration files
+- name: Create MySQL Logging configuration files
   template:
     dest: '{{ role_app_mysql_cnf_dir }}/21-logging.cnf'
     src: templates/21-logging_cnf.j2
-  when: role_app_mysql_role == "master"
   notify:
     - Restart MySQL
 

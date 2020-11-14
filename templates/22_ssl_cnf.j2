@@ -1,0 +1,5 @@
+{{ ansible_managed | comment }}
+[mysqld]
+ssl-ca=/etc/mysql/{{ role_app_mysql_ssl_cafile }}
+ssl-cert=/etc/mysql/{{ role_app_mysql_ssl_cert }}
+ssl-key=/etc/mysql/{{ role_app_mysql_ssl_key }}

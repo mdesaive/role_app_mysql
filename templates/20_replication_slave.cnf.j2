@@ -1,6 +1,8 @@
 {{ ansible_managed | comment }}
 [mysqld]
 server-id         = {{ role_app_mysql_server_id }}
+read_only         = 1
+bind-address      = 127.0.0.1
 relay-log         = /var/lib/mysql/mysql-relay-bin.log
 log_bin           = /var/lib/mysql/mysql-bin.log
 binlog-ignore-db  = mysql
