@@ -20,6 +20,9 @@
   pip:
     name: PyMySQL
 
+- name: Reset root password
+  include: 21_reset_root_password.yml
+
 - name: Create MySQL configuration files
   template:
     dest: '{{ role_app_mysql_cnf_dir }}/{{ item.key }}.cnf'

@@ -11,11 +11,8 @@
 - name: Flush MySQL handler
   meta: flush_handlers
 
-- name: Reset root password
-  include: 31_reset_root_password.yml
-
-- name: Cleanup accounts and plugins
-  include: 32_cleanup_root_accounts.yml
+- name: MySQL secure installation
+  include: 31_secure_installation.yml
 
 - name: Create DB users
   mysql_user:
