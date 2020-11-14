@@ -14,9 +14,6 @@
   # loop: '{{ lookup("varnames", "^" + role_name).split(",") | reject("match", "^" + role_name + ".*vault") | list  }}'
   loop: '{{ lookup("varnames", "^" + role_name).split(",") }}'
 
-- name: Set root password
-  include: 80-recover-lost-dbroot-pw.yml
-
 - name: Generate error, when restarting services is suppressed.
   fail:
     msg: 'role_app_mysql_service_maintenance is set to "never-stop" there are configuration chances pending.'

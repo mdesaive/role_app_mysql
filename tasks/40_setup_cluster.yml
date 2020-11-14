@@ -26,6 +26,11 @@
   no_log: true
   when: 'role_app_mysql_master_name in groups[role_app_mysql_clustername]'
 
+- debug:
+    var: groups
+- debug:
+    var: role_app_mysql_master_name
+
 - name: Query master binlog position and logfile name on master.
   community.mysql.mysql_replication:
     login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if hostvars[role_app_mysql_master_name]["role_app_mysql_tmp_vault_root_auth_type"] == "socket" | default(false) else omit }}'
@@ -40,44 +45,51 @@
 - name: Read master binlog position from variable
   set_fact:
     role_mod_mysql_tmp_master_repl_position: "{{ role_app_mysql_master_binlogposition }}"
-  when: 'role_app_mysql_master_name not in groups[role_app_mysql_clustername]'
-
-- name: Fail, if master node not ready as master
-  fail:
-    msg: Master not ready
   when:
-    - 'role_app_mysql_master_name in groups[role_app_mysql_clustername]'
-    - role_mod_mysql_tmp_master_repl_position["Is_Master"] == False
+    - 'role_app_mysql_master_name not in groups[role_app_mysql_clustername]'
+    - 'role_app_mysql_master_binlogposition is defined'
 
-- name: Get slave status
-  community.mysql.mysql_replication:
-    mode: getslave
-    login_user: '{{ "root" if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
-    login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
-    login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
-  register: role_mod_mysql_tmp_slave_status
-  no_log: true
-
+- debug:
+    var: role_mod_mysql_tmp_master_repl_position
 - block:
-    - name: Change master on slaves
+    - name: Fail, if master node not ready as master
+      fail:
+        msg: Master not ready
+      when:
+        - 'role_app_mysql_master_name in groups[role_app_mysql_clustername]'
+        - role_mod_mysql_tmp_master_repl_position["Is_Master"] == False
+
+    - name: Get slave status
       community.mysql.mysql_replication:
-        mode: changemaster
-        master_host: '{{ role_app_mysql_master_address }}'
-        master_log_file: '{{ role_mod_mysql_tmp_master_repl_position["File"] }}'
-        master_log_pos: '{{ role_mod_mysql_tmp_master_repl_position["Position"] }}'
-        master_user: '{{ role_app_mysql_vault_slave_repl_user }}'
-        master_password: '{{ role_app_mysql_vault_slave_repl_pw }}'
-        master_ssl: 1
+        mode: getslave
         login_user: '{{ "root" if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
         login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
         login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
+      register: role_mod_mysql_tmp_slave_status
       no_log: true
 
-    - name: Start slaves
-      community.mysql.mysql_replication:
-        mode: startslave
-        login_user: '{{ "root" if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
-        login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
-        login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
-  when: role_mod_mysql_tmp_slave_status["Is_Slave"] == False
-  no_log: true
+    - block:
+        - name: Change master on slaves
+          community.mysql.mysql_replication:
+            mode: changemaster
+            master_host: '{{ role_app_mysql_master_address }}'
+            master_log_file: '{{ role_mod_mysql_tmp_master_repl_position["File"] }}'
+            master_log_pos: '{{ role_mod_mysql_tmp_master_repl_position["Position"] }}'
+            master_user: '{{ role_app_mysql_vault_slave_repl_user }}'
+            master_password: '{{ role_app_mysql_vault_slave_repl_pw }}'
+            master_ssl: 1
+            login_user: '{{ "root" if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
+            login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
+            login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
+          no_log: true
+
+        - name: Start slaves
+          community.mysql.mysql_replication:
+            mode: startslave
+            login_user: '{{ "root" if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
+            login_password: '{{ role_app_mysql_vault_db_root_pw if role_app_mysql_tmp_vault_root_auth_type == "password" | default(false) else omit }}'
+            login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
+      when:
+        - role_mod_mysql_tmp_slave_status["Is_Slave"] == False
+  when:
+    - "'Is_Master' in role_mod_mysql_tmp_master_repl_position"

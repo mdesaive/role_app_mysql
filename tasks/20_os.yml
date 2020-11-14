@@ -32,6 +32,9 @@
   notify:
     - Restart MySQL
 
+- name: Install tuning helpers
+  include: 23_tuning.yml
+
 - name: Create dynamic MySQL configuration files
   template:
     dest: '{{ role_app_mysql_cnf_dir }}/{{ item.key }}.cnf'

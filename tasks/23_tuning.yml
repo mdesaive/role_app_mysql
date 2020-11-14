@@ -1,0 +1,14 @@
+- name: Ensure /opt is present.
+  file:
+    state: directory
+    path: /opt/
+
+- name: Install MySQLTuner-perl
+  git:
+    repo: https://github.com/major/MySQLTuner-perl.git
+    dest: /opt/MySQLTuner-perl
+
+- name: Install tuning-primer
+  git:
+    repo: https://github.com/BMDan/tuning-primer.sh.git
+    dest: /opt/tuning-primer.sh
