@@ -3,7 +3,7 @@
     name: "{{ role_app_mysql_service }}"
     enabled: yes
 
-- name: Start MySQL
+- name: start mysql
   service:
     name: "{{ role_app_mysql_service }}"
     state: started

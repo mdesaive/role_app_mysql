@@ -1,0 +1,57 @@
+- name: Stop service
+  service:
+    name: '{{ role_app_mysql_service }}'
+    state: stopped
+
+- name: Check if MySQL datadir is direct mountpoint
+  shell: mountpoint /var/lib/mysql
+  register: role_app_mysql_tmp_datadir_mount
+
+- name: debug
+  debug:
+    var: role_app_mysql_tmp_datadir_mount
+
+- name: Unmount datadir
+  ansible.posix.mount:
+    path: /var/lib/mysql
+    state: unmounted
+  when: role_app_mysql_tmp_datadir_mount["rc"] == 0
+
+- name: Uninstall MySQL extra packages.
+  apt:
+    name:
+    state: absent
+    purge: yes
+  loop: '{{ role_app_mysql_extra_packages }}'
+
+- name: Uninstall mysql package.
+  apt:
+    name: '{{ role_app_mysql_package }}'
+    state: absent
+    purge: yes
+  notify: Restart MySQL
+
+- name: Mount datadir
+  ansible.posix.mount:
+    path: /var/lib/mysql
+    src: /dev/mapper/data-mysql
+    fstype: ext4
+    state: mounted
+  # when: role_app_mysql_tmp_datadir_mount["rc"] == 0
+
+- name: Clean MySQL data dir
+  file:
+    state: absent
+    path: "{{ item }}"
+  loop: "{{ lookup('fileglob', '/var/lib/mysql/*', wantlist=True) }}"
+
+- name: Remove MySQL configuration dir
+  file:
+    state: absent
+    path: "/etc/mysql"
+
+- name: Remove MySQL Logfiles
+  file:
+    state: absent
+    path: "{{ item }}"
+  loop: "{{ lookup('fileglob', '/var/log/mysql*', wantlist=True) }}"

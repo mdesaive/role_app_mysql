@@ -12,6 +12,10 @@
   when:
     - role_app_mysql_master_name != role_app_mysql_tmp_master_short_hostname
 
+- name: debug
+  debug:
+    var: groups
+
 - name: Create replication users
   mysql_user:
     # check_implicit_admin: '{{ "yes" if role_app_mysql_tmp_vault_root_auth_type == "socket" | default(false) else omit }}'
@@ -25,8 +29,9 @@
     state: present
   delegate_to: '{{ role_app_mysql_master_name }}'
   no_log: true
+  when: 'role_app_mysql_master_name in groups[role_app_mysql_clustername]'
 
-- name: Get master binlog position and logfile name
+- name: Query master binlog position and logfile name on master.
   community.mysql.mysql_replication:
     login_unix_socket: '{{ "/var/run/mysqld/mysqld.sock" if hostvars[role_app_mysql_master_name]["role_app_mysql_tmp_vault_root_auth_type"] == "socket" | default(false) else omit }}'
     login_user: '{{ role_app_mysql_vault_default_auth_user if hostvars[role_app_mysql_master_name]["role_app_mysql_tmp_vault_root_auth_type"] == "password" | default(false) else omit }}'
@@ -35,11 +40,21 @@
   delegate_to: '{{ role_app_mysql_master_name }}'
   register: role_mod_mysql_tmp_master_repl_position
   no_log: true
+  when: 'role_app_mysql_master_name in groups[role_app_mysql_clustername]'
+
+- name: Read master binlog position from variable
+  set_fact:
+    role_mod_mysql_tmp_master_repl_position: "{{ role_app_mysql_master_binlogposition }}"
+
+- debug:
+    var: role_mod_mysql_tmp_master_repl_position
 
 - name: Fail, if master node not ready as master
   fail:
     msg: Master not ready
-  when: role_mod_mysql_tmp_master_repl_position["Is_Master"] == False
+  when:
+    - 'role_app_mysql_master_name in groups[role_app_mysql_clustername]'
+    - role_mod_mysql_tmp_master_repl_position["Is_Master"] == False
 
 - name: Get slave status
   community.mysql.mysql_replication:

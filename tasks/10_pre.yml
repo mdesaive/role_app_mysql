@@ -1,15 +1,3 @@
-- name: Gather OS specific variables
-  include_vars: "{{ item }}"
-  with_first_found:
-    - "{{ ansible_distribution }}-{{ ansible_distribution_version}}.yml" # For OpenSuSE Leap ansible_distribution_major_version is NA
-    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml"
-    - "{{ ansible_distribution }}.yml"
-  tags:
-    - always
-
-- name: Include OS independent variables.
-  include_vars: "vars/main.yml"
-
 # - name: Display all variables/facts known for a host
 #   debug:
 #     var: hostvars[inventory_hostname]
@@ -44,7 +32,10 @@
 - name: Set helper var, if root password logins are configured
   set_fact:
     role_app_mysql_tmp_vault_root_auth_type: 'password'
-  when: role_app_mysql_vault_root_auth_plugin == 'caching_sha2_password' or role_app_mysql_vault_root_auth_plugin == 'sha256_password' or role_app_mysql_vault_root_auth_plugin == 'mysql_native_password'
+  when: >
+    role_app_mysql_vault_root_auth_plugin == 'caching_sha2_password' or
+    role_app_mysql_vault_root_auth_plugin == 'sha256_password' or
+    role_app_mysql_vault_root_auth_plugin == 'mysql_native_password'
 
 - name: Set helper var, if root socket logins are configured
   set_fact:
@@ -60,6 +51,10 @@
     - role_app_mysql_vault_root_auth_plugin != 'mysql_native_password'
     - role_app_mysql_vault_root_auth_plugin != 'auth_socket'
 
+- name: Fail, if host is not in group with same name like <role_app_mysql_clustername>.
+  fail:
+    msg: The cluster configuration must be provided in an inventory group with the same name like <role_app_mysql_clustername>.
+  when: 'role_app_mysql_clustername not in groups'
 - name: Assure Ansible locks directory exists
   file:
     name: /etc/ansible_locks

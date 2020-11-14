@@ -1,4 +1,16 @@
 ---
+- name: Gather OS specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}-{{ ansible_distribution_version}}.yml" # For OpenSuSE Leap ansible_distribution_major_version is NA
+    - "{{ ansible_distribution }}-{{ ansible_distribution_major_version}}.yml"
+    - "{{ ansible_distribution }}.yml"
+  tags: always
+
+- name: Include OS independent variables.
+  include_vars: "vars/main.yml"
+  tags: always
+
 - name: Some early tasks.
   include: 10_pre.yml
 
@@ -12,5 +24,14 @@
   include: 40_setup_cluster.yml
   when: role_app_mysql_role == 'slave'
 
+# Still broken
+# - name: Destroy complete MySQL instalation
+#   include: 70_destroy.yml
+#   tags:
+#     - never
+#     - force_destroy
+
 - name: Some late tasks.
-  include: 60_post.yml
+  include: 80_post.yml
+  tags: always
+
