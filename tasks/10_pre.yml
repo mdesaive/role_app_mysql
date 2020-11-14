@@ -55,6 +55,7 @@
   fail:
     msg: The cluster configuration must be provided in an inventory group with the same name like <role_app_mysql_clustername>.
   when: 'role_app_mysql_clustername not in groups'
+
 - name: Assure Ansible locks directory exists
   file:
     name: /etc/ansible_locks

@@ -4,6 +4,8 @@ role_app_mysql_cnf_dir: /etc/mysql/conf.d/
 role_app_mysql_extra_packages:
   - python-pip
   - python3-pip
+  - python-dnspython
+  - python3-dnspython
   #  - python-mysql.connector
   #  - python3-mysql.connector
   #  - python-mysqldb

@@ -1,16 +1,22 @@
 {{ ansible_managed | comment }}
 [mysqld]
-log-error = /var/log/mysql/error.log
 expire_logs_days = 30
-{% if role_app_mysql_general_log_enabled == True %}
-general-log = 1
+log-error = /var/log/mysql/error.log
 general-log-file = /var/log/mysql/mysql.log
+{% if role_app_mysql_general_log_enabled is defined and role_app_mysql_general_log_enabled == True %}
+general-log = 1
+{% else %}
+general-log = 0
 {% endif %}
-{% if role_app_mysql_slowquery_log_enabled == True %}
-slow-query-log = 1
 slow-query-log-file = /var/log/mysql/slowquery.log
 long_query_time = 4
+{% if role_app_mysql_slowquery_log_enabled is defined and role_app_mysql_slowquery_log_enabled == True %}
+slow-query-log = 1
+{% else %}
+slow-query-log = 0
 {% endif %}
 {% if role_app_mysql_log_queries_not_using_indexes_enabled is defined and role_app_mysql_log_queries_not_using_indexes_enabled == True %}
 log-queries-not-using-indexes = 1
+{% else %}
+log-queries-not-using-indexes = 0
 {% endif %}
