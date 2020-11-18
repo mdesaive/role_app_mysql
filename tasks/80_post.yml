@@ -13,9 +13,3 @@
     msg: '{{ lookup("vars", item) }}'
   # loop: '{{ lookup("varnames", "^" + role_name).split(",") | reject("match", "^" + role_name + ".*vault") | list  }}'
   loop: '{{ lookup("varnames", "^" + role_name).split(",") }}'
-
-- name: Generate error, when restarting services is suppressed.
-  fail:
-    msg: 'role_app_mysql_service_maintenance is set to "never-stop" there are configuration chances pending.'
-  ignore_errors: yes
-  when: role_app_mysql_service_maintenance == 'never-stop'
