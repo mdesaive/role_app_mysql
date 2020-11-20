@@ -9,7 +9,6 @@
 
 - name: Include OS independent variables.
   include_vars: "vars/main.yml"
-  tags: always
 
 - name: Some early tasks.
   include: 10_pre.yml
@@ -20,18 +19,18 @@
 - name: Tasks that rely on service running.
   include: 30_service_required.yml
 
-- name: Setup the cluster.
-  include: 40_setup_cluster.yml
-  when: role_app_mysql_role == 'slave'
-
-# Still broken
-# - name: Destroy complete MySQL instalation
-#   include: 70_destroy.yml
-#   tags:
-#     - never
-#     - force_destroy
-
-- name: Some late tasks.
-  include: 80_post.yml
-  tags: always
-
+  # - name: Setup the cluster.
+  #   include: 40_setup_cluster.yml
+  #   when: role_app_mysql_role == 'slave'
+  # 
+  # # Still broken
+  # # - name: Destroy complete MySQL instalation
+  # #   include: 70_destroy.yml
+  # #   tags:
+  # #     - never
+  # #     - force_destroy
+  # 
+  # - name: Some late tasks.
+  #   include: 80_post.yml
+  #   tags: always
+  # 

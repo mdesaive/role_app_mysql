@@ -15,6 +15,11 @@ It expects a system that is set up according to "playbook_baseinstall".
 
 The role "role_mod_repositories" has to be ready in the playbooks ./roles directory.
 
+The following modules have to be installed:
+```
+ansible-galaxy collection install community.mysql
+```
+
 Role Variables
 --------------
 The following data structure has to be provided to define the setup:

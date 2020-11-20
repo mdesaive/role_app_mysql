@@ -1,6 +1,6 @@
 - name: Query hostname to master IP address
   set_fact:
-    role_app_mysql_tmp_master_fqdn: '{{ lookup("community.general.dig", role_app_mysql_master_address + "/PTR", "@" + role_app_mysql_tmp_dns_server) | regex_replace("\.$", "") }}'
+    role_app_mysql_tmp_master_fqdn: '{{ lookup("community.general.dig", role_app_mysql_master_address + "/PTR") | regex_replace("\.$", "") }}'
 
 - name: Set short service name for master
   set_fact:

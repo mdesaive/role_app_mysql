@@ -8,13 +8,9 @@
 #   loop: '{{ lookup("varnames", "^" + role_name).split(",") | reject("match", "^" + role_name + ".*vault") | list  }}'
 #   # loop: '{{ lookup("varnames", "^" + role_name).split(",") }}'
 
-- name: Determine IP address of DNS server to use
-  set_fact:
-    role_app_mysql_tmp_dns_server: '{{ role_app_mysql_dns_server if role_app_mysql_dns_server is defined else ansible_env["SSH_CLIENT"].split()[0] }}'
-
 - name: Query hostname to service IP address
   set_fact:
-    role_app_mysql_tmp_fqdn: '{{ lookup("community.general.dig", role_app_mysql_service_address + "/PTR", "@" + role_app_mysql_tmp_dns_server) | regex_replace("\.$", "") }}'
+    role_app_mysql_tmp_fqdn: '{{ lookup("community.general.dig", role_app_mysql_service_address + "/PTR") | regex_replace("\.$", "") }}'
 
 - name: Set short service name
   set_fact:
@@ -76,6 +72,10 @@
       set_fact:
         role_app_mysql_tmp_apt_distrocodename: "{{ ansible_distribution_release }}"
       when: ansible_os_family == "Debian"
+
+    - name: debug
+      debug:
+        var: role_app_mysql_tmp_apt_distrocodename
 
     - name: Attach to MySQL Community Repositories for RedHat
       import_role:
@@ -516,10 +516,10 @@
                 =ghXk
                 -----END PGP PUBLIC KEY BLOCK-----
         - role_mod_repositories_apt_repos:
-            - filename: mysql
-              repo: "deb http://repo.mysql.com/apt/debian/ {{ role_app_mysql_tmp_apt_distrocodename }} mysql-apt-config"
-            - filename: mysql
-              repo: "deb http://repo.mysql.com/apt/debian/ {{ role_app_mysql_tmp_apt_distrocodename }} mysql-tools"
+            # - filename: mysql
+            #   repo: "deb http://repo.mysql.com/apt/debian/ {{ role_app_mysql_tmp_apt_distrocodename }} mysql-apt-config"
+            # - filename: mysql
+            #   repo: "deb http://repo.mysql.com/apt/debian/ {{ role_app_mysql_tmp_apt_distrocodename }} mysql-tools"
             - filename: mysql
               repo: "deb http://repo.mysql.com/apt/debian/ {{ role_app_mysql_tmp_apt_distrocodename }} mysql-{{ role_app_mysql_mysql_version }}"
         - role_mod_repositories_yum_keyfile_contents:

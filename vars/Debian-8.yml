@@ -2,6 +2,7 @@ role_app_mysql_package: mysql-server
 role_app_mysql_service: mysql
 role_app_mysql_cnf_dir: /etc/mysql/conf.d/
 role_app_mysql_extra_packages:
+  - git # To clone MySQL performance test tools.
   - python-pip
   - python3-pip
   - python-dnspython
